@@ -70,9 +70,11 @@
 //
 //	or
 //
+//	$ go test -bench . -benchmem
 //	$ go test -c
 //	$ ./bufs.test -test.v -test.run Foo -test.memprofile mem.out -test.memprofilerate 1
-//	$ go tool pprof bufs.test mem.out --alloc_space -web
+//	$ go tool pprof bufs.test mem.out --alloc_space --nodefraction 0.0001 --edgefraction 0 -web
+//	$ # Note: Foo vs FooBufs allocated memory is in hundreds of MBs vs 8 kB.
 //
 //	or
 //
