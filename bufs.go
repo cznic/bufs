@@ -122,7 +122,7 @@ func New(n int) Buffers {
 // sense. Another real world example are compression/decompression buffers.
 //
 // NOTE: The buffer returned by Alloc _is not_ zeroed. That's okay for e.g.
-// passing a buffer for io.Reader. If you need a zeroed buffer use Calloc.
+// passing a buffer to io.Reader. If you need a zeroed buffer use Calloc.
 //
 // NOTE: Buffers returned from Alloc _must not_ be exposed/returned to your
 // clients.  Those buffers are intended to be used strictly internally, within
@@ -150,7 +150,7 @@ func (p *Buffers) Alloc(n int) (r []byte) {
 	}
 
 	last := len(b) - 1
-	if best >= n {
+	if bestI >= 0 {
 		r = b[bestI]
 		b[last], b[bestI] = b[bestI], b[last]
 		*p = b[:last]
