@@ -54,7 +54,7 @@
 // Buffers. It's _highly_ recommended to first do profiling and memory
 // profiling before even thinking about using 'bufs'. The real world example,
 // and cause for this package, was a first correct, yet no optimizations done
-// version of program; producing few MB of useful data while allocating 20+GB
+// version of a program; producing few MB of useful data while allocating 20+GB
 // of memory.  Of course the garbage collector properly kicked in, yet the
 // memory abuse caused ~80+% of run time to be spent memory management.  The
 // program _was_ expected to be slow in its still development phase, but the
