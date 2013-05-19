@@ -70,7 +70,6 @@
 //
 //	or
 //
-//	$ go test -bench . -benchmem
 //	$ go test -c
 //	$ ./bufs.test -test.v -test.run Foo -test.memprofile mem.out -test.memprofilerate 1
 //	$ go tool pprof bufs.test mem.out --alloc_space --nodefraction 0.0001 --edgefraction 0 -web
@@ -78,7 +77,7 @@
 //
 //	or
 //
-//	$ make demo # same as the above
+//	$ make demo # same as all of the above
 //
 //
 // NOTE: Alloc/Free calls must be properly nested in the same way as in for
