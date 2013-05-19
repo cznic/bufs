@@ -149,7 +149,7 @@ func (p *Buffers) Alloc(n int) (r []byte) {
 	}
 
 	last := len(b) - 1
-	if bestI >= 0 {
+	if bestI >= 0 && best >= n {
 		r = b[bestI]
 		b[last], b[bestI] = b[bestI], b[last]
 		*p = b[:last]
