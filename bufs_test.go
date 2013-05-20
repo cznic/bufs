@@ -68,53 +68,113 @@ func Test3(t *testing.T) {
 }
 
 func Test4(t *testing.T) {
-	b := New(4)
-	b1 := b.Alloc(1)
-	b2 := b.Alloc(2)
-	b3 := b.Alloc(3)
-	b4 := b.Alloc(4)
-
-	p1 := &b1[0]
-	p2 := &b2[0]
-	p3 := &b3[0]
-	p4 := &b4[0]
-
-	if p1 == p2 || p1 == p3 || p1 == p4 ||
-		p2 == p3 || p2 == p4 ||
-		p3 == p4 {
-		t.Fatal(p1, p2, p3, p4)
+	b := New(4)        // 0, 0, 0, 0
+	b10 := b.Alloc(10) // 0, 0, 0 | 10
+	if n := len(b10); n != 10 {
+		t.Fatal(n)
 	}
 
-	if len(b1) != 1 || len(b2) != 2 || len(b3) != 3 || len(b4) != 4 {
-		t.Fatal(len(b1), len(b2), len(b3), len(b4))
+	b20 := b.Alloc(20) // 0, 0 | 20, 10
+	if n := len(b20); n != 20 {
+		t.Fatal(n)
 	}
 
-	b.Free() // 4
-	b.Free() // 3
-	b.Free() // 2
-
-	x := b.Alloc(2)
-	if p := &x[0]; p != p2 {
-		t.Fatal(p, p2)
+	b30 := b.Alloc(30) // 0 | 30, 20, 10
+	if n := len(b30); n != 30 {
+		t.Fatal(n)
 	}
 
-	b.Free() // 2
-	x = b.Alloc(3)
-	if p := &x[0]; p != p3 {
-		t.Fatal(p, p3)
+	b40 := b.Alloc(40) // | 40, 30, 20, 10
+	if n := len(b40); n != 40 {
+		t.Fatal(n)
 	}
 
-	b.Free() // 2
-	x = b.Alloc(1)
-	if p := &x[0]; p != p2 || p == p1 {
-		t.Fatal(p, p2, p1)
+	p10 := &b10[0]
+	p20 := &b20[0]
+	p30 := &b30[0]
+	p40 := &b40[0]
+
+	if len(map[*byte]int{p10: 0, p20: 0, p30: 0, p40: 0}) != 4 {
+		t.Fatal(p10, p20, p30, p40)
 	}
 
-	b.Free() // 2
-	x = b.Alloc(5)
-	if p := &x[0]; p == p1 || p == p2 || p == p3 || p == p4 {
-		t.Fatal(p)
+	if len(b10) != 10 || len(b20) != 20 || len(b30) != 30 || len(b40) != 40 {
+		t.Fatal(len(b10), len(b20), len(b30), len(b40))
 	}
+
+	b.Free() // 40 | 30, 20, 10
+	b.Free() // 40, 30 | 20, 10
+	b.Free() // 40, 30, 20 | 10
+
+	x := b.Alloc(20) // 40, 30 | 20, 10
+	if n := len(x); n != 20 {
+		t.Fatal(n)
+	}
+
+	if p := &x[0]; p != p20 {
+		t.Fatal(p, p20)
+	}
+
+	b.Free()        // 40, 30, 20 | 10
+	x = b.Alloc(30) // 40, 20 | 30, 10
+	if n := len(x); n != 30 {
+		t.Fatal(n)
+	}
+
+	if p := &x[0]; p != p30 {
+		t.Fatal(p, p30)
+	}
+
+	b.Free()        // 40, 20, 30 | 10
+	x = b.Alloc(10) // 40, 30 | 20, 10
+	if n := len(x); n != 10 {
+		t.Fatal(n)
+	}
+
+	if p := &x[0]; p != p20 {
+		t.Fatal(p, p20)
+	}
+
+	b.Free()        // 40, 30, 20 | 10
+	x = b.Alloc(50) // 30, 20 | 50, 10
+	if n := len(x); n != 50 {
+		t.Fatal(n)
+	}
+
+	if p := &x[0]; p == p10 || p == p20 || p == p30 || p == p40 {
+		t.Fatal(p, p10, p20, p30, p40)
+	}
+
+	b.Free()        // 30, 20, 50 | 10
+	x = b.Alloc(15) // 30, 50 | 20, 10
+	if n := len(x); n != 15 {
+		t.Fatal(n)
+	}
+
+	if p := &x[0]; p != p20 {
+		t.Fatal(p, p20)
+	}
+
+	b.Free()        // 30, 50, 20 | 10
+	x = b.Alloc(25) // 50, 20, | 30, 10
+	if n := len(x); n != 25 {
+		t.Fatal(n)
+	}
+
+	if p := &x[0]; p != p30 {
+		t.Fatal(p, p30)
+	}
+
+	x = b.Alloc(0) // 50 | 20, 30, 10
+	if n := len(x); n != 0 {
+		t.Fatal(n)
+	}
+
+	x = x[:1]
+	if p := &x[0]; p != p20 {
+		t.Fatal(p, p20)
+	}
+
 }
 
 const (

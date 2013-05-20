@@ -134,8 +134,7 @@ func (p *Buffers) Alloc(n int) (r []byte) {
 		panic(errors.New("Buffers.Alloc: out of buffers"))
 	}
 
-	var biggest, best int
-	biggestI, bestI := -1, -1
+	biggest, best, biggestI, bestI := -1, -1, -1, -1
 	for i, v := range b {
 		ln := len(v)
 
@@ -149,11 +148,11 @@ func (p *Buffers) Alloc(n int) (r []byte) {
 	}
 
 	last := len(b) - 1
-	if bestI >= 0 && best >= n {
+	if best >= n {
 		r = b[bestI]
 		b[last], b[bestI] = b[bestI], b[last]
 		*p = b[:last]
-		return
+		return r[:n]
 	}
 
 	r = make([]byte, n)
