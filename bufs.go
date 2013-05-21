@@ -136,7 +136,11 @@ func (p *Buffers) Alloc(n int) (r []byte) {
 
 	biggest, best, biggestI, bestI := -1, -1, -1, -1
 	for i, v := range b {
-		ln := len(v)
+		//ln := len(v)
+		// The above was correct, buts it's just confusing. It worked
+		// because not the buffers, but slices of them are returned in
+		// the 'if best >= n' code path.
+		ln := cap(v)
 
 		if ln >= biggest {
 			biggest, biggestI = ln, i
@@ -144,6 +148,9 @@ func (p *Buffers) Alloc(n int) (r []byte) {
 
 		if ln >= n && (bestI < 0 || best > ln) {
 			best, bestI = ln, i
+			if ln == n {
+				break
+			}
 		}
 	}
 

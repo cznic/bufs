@@ -175,6 +175,15 @@ func Test4(t *testing.T) {
 		t.Fatal(p, p20)
 	}
 
+	b.Free()       // 50, 20 | 30, 10
+	x = b.Alloc(1) // 50, | 20, 30, 10
+	if n := len(x); n != 1 {
+		t.Fatal(n)
+	}
+
+	if p := &x[0]; p != p20 {
+		t.Fatal(p, p20)
+	}
 }
 
 const (
