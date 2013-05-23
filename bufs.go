@@ -125,7 +125,47 @@ func New(n int) Buffers {
 //
 // NOTE: Buffers returned from Alloc _must not_ be exposed/returned to your
 // clients.  Those buffers are intended to be used strictly internally, within
-// the methods of some "object".
+// the methods of some "object". Consider a method (function per analogy)
+// signature:
+//
+//	func (t T) Get() (b []byte, err error)
+//
+// If the Get method is invoked like this:
+//
+//	for i := 0; i < baz; i++ {
+//		buf, err := t.Get()
+//		... use buf for computation or I/O
+//	}
+//
+// then a lot of garbage from thrown away buffers bufs is/could be generated.
+// It is recommended to change the signature to:
+//
+//	func (t T) Get(dst []buf) (b []byte, err error)
+//
+// ie. to hand over a destination buffer to get. By convention it can be nil
+// or shorter than required, In such cases Get must create a buffer:
+//
+//	// Get returns ... The returned slice may be a sub-slice of dst if dst
+//	// was large enough to hold the entire processed block. Otherwise, a
+//	// newly allocated slice will be returned. It is valid to pass a nil dst.
+//	func (t T) Get(dst []byte) (b []byte, err error) {
+//		if cap(dst) >= needed {
+//			b = dst[:needed]
+//		} else {
+//			b = make([]byte, needed)
+//		}
+//		... use b for computation or I/O
+//	}
+//
+// And the above loop is rewritten to:
+//
+//	buf := buffers.Alloc(maxNeeded)
+//	defer buffers.Free()
+//	for i := 0; i < baz; i++ {
+//		buf, err := t.Get(buf)
+//		... use buf for computation or I/O
+//	}
+//
 //
 // NOTE: Alloc will panic if there are no buffers (buffer slots) left.
 func (p *Buffers) Alloc(n int) (r []byte) {
