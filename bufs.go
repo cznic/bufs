@@ -215,7 +215,7 @@ func (p *Buffers) Stats() (bytes int) {
 // places/scopes.
 type Cache [][]byte
 
-// Get returns a buffer ([]byte) of length n. If no such buffer is cached the
+// Get returns a buffer ([]byte) of length n. If no such buffer is cached then
 // it is created.
 //
 // NOTE: The buffer returned by Get _is not guaranteed_ to be zeroed. That's
