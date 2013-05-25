@@ -97,9 +97,15 @@ package bufs
 
 import (
 	"errors"
+	"sort"
 )
 
 // Buffers type represents a buffer ([]byte) cache.
+//
+// NOTE: Do not modify Buffers directly, use only its methods. Do not create
+// additional values (copies) of Buffers, that'll break its functionality. Use
+// a pointer instead to refer to a single instance from different
+// places/scopes.
 type Buffers [][]byte
 
 // New returns a newly created instance of Buffers with a maximum capacity of n
@@ -198,5 +204,74 @@ func (p *Buffers) Stats() (bytes int) {
 	for _, v := range b {
 		bytes += cap(v)
 	}
+	return
+}
+
+// Cache caches buffers ([]byte). A zero value of Cache is ready for use.
+//
+// NOTE: Do not modify a Cache directly, use only its methods. Do not create
+// additional values (copies) of a Cache, that'll break its functionality. Use
+// a pointer instead to refer to a single instance from different
+// places/scopes.
+type Cache [][]byte
+
+// Get returns a buffer ([]byte) of length n. If no such buffer is cached the
+// it is created.
+//
+// NOTE: The buffer returned by Get _is not guaranteed_ to be zeroed. That's
+// okay for e.g.  passing a buffer to io.Reader. If you need a zeroed buffer use Cget.
+func (c *Cache) Get(n int) []byte {
+	r, _ := c.get(n)
+	return r
+}
+
+func (c *Cache) get(n int) (r []byte, isZeroed bool) {
+	s := *c
+	lens := len(s)
+	i := sort.Search(lens, func(x int) bool { return len(s[x]) >= n })
+	if i == lens {
+		return make([]byte, n), true
+	}
+
+	if len(s[i]) < n {
+		i++
+	}
+	r = s[i][:n]
+	copy(s[i:], s[i+1:])
+	s = s[:lens-1]
+	*c = s
+	return r, false
+}
+
+// Cget will acquire a buffer using Get and then clears it to zeros. The
+// zeroing goes up to n, not cap(r).
+func (c *Cache) Cget(n int) (r []byte) {
+	r, ok := c.get(n)
+	if ok {
+		return
+	}
+
+	for i := range r {
+		r[i] = 0
+	}
+	return
+}
+
+// Put caches b for possible later reuse (via Get). No other references to b's
+// backing array may exist. Otherwise a big mess is sooner or later inevitable.
+func (c *Cache) Put(b []byte) {
+	b = b[:cap(b)]
+	lenb := len(b)
+	if lenb == 0 {
+		return
+	}
+
+	s := *c
+	lens := len(s)
+	i := sort.Search(lens, func(x int) bool { return len(s[x]) >= lenb })
+	s = append(s, nil)
+	copy(s[i+1:], s[i:])
+	s[i] = b
+	*c = s
 	return
 }

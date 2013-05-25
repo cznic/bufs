@@ -6,8 +6,17 @@ package bufs
 
 import (
 	"fmt"
+	"path"
+	"runtime"
 	"testing"
 )
+
+var dbg = func(s string, va ...interface{}) {
+	_, fn, fl, _ := runtime.Caller(1)
+	fmt.Printf("%s:%d: ", path.Base(fn), fl)
+	fmt.Printf(s, va...)
+	fmt.Println()
+}
 
 func Test0(t *testing.T) {
 	b := New(0)
@@ -280,5 +289,139 @@ func BenchmarkFooBufs(b *testing.B) {
 	foo := NewFooBufs()
 	for i := 0; i < b.N; i++ {
 		foo.Bar(bufSize)
+	}
+}
+
+func TestCache(t *testing.T) {
+	var c Cache
+	b10 := c.Get(10)
+	if g, e := len(c), 0; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b10), 10; g != e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b10)
+	if g, e := len(c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	b9 := c.Get(9)
+	if g, e := len(c), 0; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b9), 9; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := &b9[0], &b10[0]; g != e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b9)
+	if g, e := len(c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	b10b := c.Get(10)
+	if g, e := len(c), 0; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b10b), 10; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := &b10b[0], &b10[0]; g != e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b10b)
+	if g, e := len(c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	b11 := c.Get(11)
+	if g, e := len(c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b11), 11; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := &b11[0], &b10[0]; g == e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b11)
+	if g, e := len(c), 2; g != e {
+		t.Fatal(g, e)
+	}
+
+	b9 = c.Get(9)
+	if g, e := len(c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b9), 9; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := &b9[0], &b10[0]; g != e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b9)
+	if g, e := len(c), 2; g != e {
+		t.Fatal(g, e)
+	}
+
+	b10b = c.Get(10)
+	if g, e := len(c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b10b), 10; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := &b10b[0], &b10[0]; g != e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b10b)
+	if g, e := len(c), 2; g != e {
+		t.Fatal(g, e)
+	}
+
+	b11b := c.Get(11)
+	if g, e := len(c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b11b), 11; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := &b11b[0], &b11[0]; g != e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b11b)
+	if g, e := len(c), 2; g != e {
+		t.Fatal(g, e)
+	}
+
+	b12 := c.Get(12)
+	if g, e := len(c), 2; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b12), 12; g != e {
+		t.Fatal(g, e)
 	}
 }
