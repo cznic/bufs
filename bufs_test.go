@@ -294,7 +294,7 @@ func BenchmarkFooBufs(b *testing.B) {
 
 func TestCache(t *testing.T) {
 	var c Cache
-	b10 := c.Get(10)
+	b10 := c.Get(10) // []
 	if g, e := len(c), 0; g != e {
 		t.Fatal(g, e)
 	}
@@ -303,12 +303,12 @@ func TestCache(t *testing.T) {
 		t.Fatal(g, e)
 	}
 
-	c.Put(b10)
+	c.Put(b10) // [10]
 	if g, e := len(c), 1; g != e {
 		t.Fatal(g, e)
 	}
 
-	b9 := c.Get(9)
+	b9 := c.Get(9) // []
 	if g, e := len(c), 0; g != e {
 		t.Fatal(g, e)
 	}
@@ -321,12 +321,12 @@ func TestCache(t *testing.T) {
 		t.Fatal(g, e)
 	}
 
-	c.Put(b9)
+	c.Put(b9) // [10]
 	if g, e := len(c), 1; g != e {
 		t.Fatal(g, e)
 	}
 
-	b10b := c.Get(10)
+	b10b := c.Get(10) // []
 	if g, e := len(c), 0; g != e {
 		t.Fatal(g, e)
 	}
@@ -339,13 +339,13 @@ func TestCache(t *testing.T) {
 		t.Fatal(g, e)
 	}
 
-	c.Put(b10b)
+	c.Put(b10b) // [10]
 	if g, e := len(c), 1; g != e {
 		t.Fatal(g, e)
 	}
 
-	b11 := c.Get(11)
-	if g, e := len(c), 1; g != e {
+	b11 := c.Get(11) // []
+	if g, e := len(c), 0; g != e {
 		t.Fatal(g, e)
 	}
 
@@ -357,13 +357,13 @@ func TestCache(t *testing.T) {
 		t.Fatal(g, e)
 	}
 
-	c.Put(b11)
-	if g, e := len(c), 2; g != e {
+	c.Put(b11) // [11]
+	if g, e := len(c), 1; g != e {
 		t.Fatal(g, e)
 	}
 
-	b9 = c.Get(9)
-	if g, e := len(c), 1; g != e {
+	b9 = c.Get(9) // []
+	if g, e := len(c), 0; g != e {
 		t.Fatal(g, e)
 	}
 
@@ -371,17 +371,17 @@ func TestCache(t *testing.T) {
 		t.Fatal(g, e)
 	}
 
-	if g, e := &b9[0], &b10[0]; g != e {
+	if g, e := &b9[0], &b11[0]; g != e {
 		t.Fatal(g, e)
 	}
 
-	c.Put(b9)
-	if g, e := len(c), 2; g != e {
-		t.Fatal(g, e)
-	}
-
-	b10b = c.Get(10)
+	c.Put(b9) // [11]
 	if g, e := len(c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	b10b = c.Get(10) // []
+	if g, e := len(c), 0; g != e {
 		t.Fatal(g, e)
 	}
 
@@ -389,17 +389,17 @@ func TestCache(t *testing.T) {
 		t.Fatal(g, e)
 	}
 
-	if g, e := &b10b[0], &b10[0]; g != e {
+	if g, e := &b10b[0], &b11[0]; g != e {
 		t.Fatal(g, e)
 	}
 
-	c.Put(b10b)
-	if g, e := len(c), 2; g != e {
-		t.Fatal(g, e)
-	}
-
-	b11b := c.Get(11)
+	c.Put(b10b) // [11]
 	if g, e := len(c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	b11b := c.Get(11) // []
+	if g, e := len(c), 0; g != e {
 		t.Fatal(g, e)
 	}
 
@@ -411,13 +411,13 @@ func TestCache(t *testing.T) {
 		t.Fatal(g, e)
 	}
 
-	c.Put(b11b)
-	if g, e := len(c), 2; g != e {
+	c.Put(b11b) // [11]
+	if g, e := len(c), 1; g != e {
 		t.Fatal(g, e)
 	}
 
-	b12 := c.Get(12)
-	if g, e := len(c), 2; g != e {
+	b12 := c.Get(12) // []
+	if g, e := len(c), 0; g != e {
 		t.Fatal(g, e)
 	}
 

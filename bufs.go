@@ -216,10 +216,29 @@ func (p *Buffers) Stats() (bytes int) {
 type Cache [][]byte
 
 // Get returns a buffer ([]byte) of length n. If no such buffer is cached then
-// it is created.
+// a biggest cached buffer is resized to have length n and returned. If there
+// are no cached items at all, Get returns a newly allocated buffer.
+//
+// In other words the cache policy is:
+//
+// - If the cache is empty, the buffer must be newly created and returned.
+// Cache remains empty.
+//
+// - If a buffer of sufficient size is found in the cache, remove it from the
+// cache and return it.
+//
+// - Otherwise the cache is non empty, but no cached buffer is big enough.
+// Enlarge the biggest cached buffer, remove it from the cache and return it.
+// This provide cached buffers size adjustment based on demand.
+//
+// In short, if the cache is not empty, Get guarantees to make it always one
+// item less.  This rules prevent uncontrolled cache grow in some scenarios.
+// The older policy was not preventing that. Another advantage is better cached
+// buffers sizes "auto tuning", although not in every possible use case.
 //
 // NOTE: The buffer returned by Get _is not guaranteed_ to be zeroed. That's
-// okay for e.g.  passing a buffer to io.Reader. If you need a zeroed buffer use Cget.
+// okay for e.g.  passing a buffer to io.Reader. If you need a zeroed buffer
+// use Cget.
 func (c *Cache) Get(n int) []byte {
 	r, _ := c.get(n)
 	return r
@@ -228,13 +247,14 @@ func (c *Cache) Get(n int) []byte {
 func (c *Cache) get(n int) (r []byte, isZeroed bool) {
 	s := *c
 	lens := len(s)
-	i := sort.Search(lens, func(x int) bool { return len(s[x]) >= n })
-	if i == lens {
+	if lens == 0 {
 		return make([]byte, n), true
 	}
 
-	if len(s[i]) < n {
-		i++
+	i := sort.Search(lens, func(x int) bool { return len(s[x]) >= n })
+	if i == lens {
+		i--
+		s[i] = make([]byte, n)
 	}
 	r = s[i][:n]
 	copy(s[i:], s[i+1:])
