@@ -425,3 +425,137 @@ func TestCache(t *testing.T) {
 		t.Fatal(g, e)
 	}
 }
+
+func TestCCache(t *testing.T) {
+	var c CCache
+	b10 := c.Get(10) // []
+	if g, e := len(c.c), 0; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b10), 10; g != e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b10) // [10]
+	if g, e := len(c.c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	b9 := c.Get(9) // []
+	if g, e := len(c.c), 0; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b9), 9; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := &b9[0], &b10[0]; g != e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b9) // [10]
+	if g, e := len(c.c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	b10b := c.Get(10) // []
+	if g, e := len(c.c), 0; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b10b), 10; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := &b10b[0], &b10[0]; g != e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b10b) // [10]
+	if g, e := len(c.c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	b11 := c.Get(11) // []
+	if g, e := len(c.c), 0; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b11), 11; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := &b11[0], &b10[0]; g == e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b11) // [11]
+	if g, e := len(c.c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	b9 = c.Get(9) // []
+	if g, e := len(c.c), 0; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b9), 9; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := &b9[0], &b11[0]; g != e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b9) // [11]
+	if g, e := len(c.c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	b10b = c.Get(10) // []
+	if g, e := len(c.c), 0; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b10b), 10; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := &b10b[0], &b11[0]; g != e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b10b) // [11]
+	if g, e := len(c.c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	b11b := c.Get(11) // []
+	if g, e := len(c.c), 0; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b11b), 11; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := &b11b[0], &b11[0]; g != e {
+		t.Fatal(g, e)
+	}
+
+	c.Put(b11b) // [11]
+	if g, e := len(c.c), 1; g != e {
+		t.Fatal(g, e)
+	}
+
+	b12 := c.Get(12) // []
+	if g, e := len(c.c), 0; g != e {
+		t.Fatal(g, e)
+	}
+
+	if g, e := len(b12), 12; g != e {
+		t.Fatal(g, e)
+	}
+}

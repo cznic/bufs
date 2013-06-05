@@ -98,6 +98,7 @@ package bufs
 import (
 	"errors"
 	"sort"
+	"sync"
 )
 
 // Buffers type represents a buffer ([]byte) cache.
@@ -295,3 +296,60 @@ func (c *Cache) Put(b []byte) {
 	*c = s
 	return
 }
+
+// CCache is a Cache which is safe for concurrent use by multiple goroutines.
+type CCache struct {
+	c  Cache
+	mu sync.Mutex
+}
+
+// Get returns a buffer ([]byte) of length n. If no such buffer is cached then
+// a biggest cached buffer is resized to have length n and returned. If there
+// are no cached items at all, Get returns a newly allocated buffer.
+//
+// In other words the cache policy is:
+//
+// - If the cache is empty, the buffer must be newly created and returned.
+// Cache remains empty.
+//
+// - If a buffer of sufficient size is found in the cache, remove it from the
+// cache and return it.
+//
+// - Otherwise the cache is non empty, but no cached buffer is big enough.
+// Enlarge the biggest cached buffer, remove it from the cache and return it.
+// This provide cached buffers size adjustment based on demand.
+//
+// In short, if the cache is not empty, Get guarantees to make it always one
+// item less.  This rules prevent uncontrolled cache grow in some scenarios.
+// The older policy was not preventing that. Another advantage is better cached
+// buffers sizes "auto tuning", although not in every possible use case.
+//
+// NOTE: The buffer returned by Get _is not guaranteed_ to be zeroed. That's
+// okay for e.g.  passing a buffer to io.Reader. If you need a zeroed buffer
+// use Cget.
+func (c *CCache) Get(n int) []byte {
+	c.mu.Lock()
+	r, _ := c.c.get(n)
+	c.mu.Unlock()
+	return r
+}
+
+// Cget will acquire a buffer using Get and then clears it to zeros. The
+// zeroing goes up to n, not cap(r).
+func (c *CCache) Cget(n int) (r []byte) {
+	c.mu.Lock()
+	r = c.c.Cget(n)
+	c.mu.Unlock()
+	return
+}
+
+// Put caches b for possible later reuse (via Get). No other references to b's
+// backing array may exist. Otherwise a big mess is sooner or later inevitable.
+func (c *CCache) Put(b []byte) {
+	c.mu.Lock()
+	c.c.Put(b)
+	c.mu.Unlock()
+}
+
+// GCache is a ready to use global instance of a CCache.
+var GCache CCache
