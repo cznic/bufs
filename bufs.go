@@ -169,7 +169,7 @@ func (p *Buffers) Alloc(n int) (r []byte) {
 		return r[:n]
 	}
 
-	r = make([]byte, n)
+	r = make([]byte, n, overCommit(n))
 	b[biggestI] = r
 	b[last], b[biggestI] = b[biggestI], b[last]
 	*p = b[:last]
@@ -249,16 +249,18 @@ func (c *Cache) get(n int) (r []byte, isZeroed bool) {
 	s := *c
 	lens := len(s)
 	if lens == 0 {
-		return make([]byte, n), true
+		r, isZeroed = make([]byte, n, overCommit(n)), true
+		return
 	}
 
 	i := sort.Search(lens, func(x int) bool { return len(s[x]) >= n })
 	if i == lens {
 		i--
-		s[i] = make([]byte, n)
+		s[i] = make([]byte, n, overCommit(n))
 	}
 	r = s[i][:n]
 	copy(s[i:], s[i+1:])
+	s[lens-1] = nil
 	s = s[:lens-1]
 	*c = s
 	return r, false
@@ -294,6 +296,17 @@ func (c *Cache) Put(b []byte) {
 	copy(s[i+1:], s[i:])
 	s[i] = b
 	*c = s
+	return
+}
+
+// Stats reports memory consumed by a Cache, without accounting for some
+// (smallish) additional overhead. 'n' is the number of cached buffers, bytes
+// is their combined capacity.
+func (c Cache) Stats() (n, bytes int) {
+	n = len(c)
+	for _, v := range c {
+		bytes += cap(v)
+	}
 	return
 }
 
@@ -351,5 +364,28 @@ func (c *CCache) Put(b []byte) {
 	c.mu.Unlock()
 }
 
+// Stats reports memory consumed by a Cache, without accounting for some
+// (smallish) additional overhead. 'n' is the number of cached buffers, bytes
+// is their combined capacity.
+func (c *CCache) Stats() (n, bytes int) {
+	c.mu.Lock()
+	n, bytes = c.c.Stats()
+	c.mu.Unlock()
+	return
+}
+
 // GCache is a ready to use global instance of a CCache.
 var GCache CCache
+
+func overCommit(n int) int {
+	switch {
+	case n < 8:
+		return 8
+	case n < 1e5:
+		return 2 * n
+	case n < 1e6:
+		return 3 * n / 2
+	default:
+		return n
+	}
+}
