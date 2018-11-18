@@ -1,8 +1,5 @@
-bufs
-====
+`github.com/cznic/bufs` has moved to [`modernc.org/bufs`](https://godoc.org/modernc.org/bufs) ([vcs](https://gitlab.com/cznic/bufs)).
 
-Package bufs implements a simple buffer cache.
+Please update your import paths to `modernc.org/bufs`.
 
- installation: go get github.com/cznic/bufs
-
-documentation: http://godoc.org/github.com/cznic/bufs
+This repo is now archived.
